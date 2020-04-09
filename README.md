@@ -3,7 +3,7 @@ This fork exists purely so that I can create Git URL's to the com.unity.ml-agent
 If you want to use these URL's, go ahead! (Note that you will still need to install the Python dependencies in your environment!)
 
 For example, this would be the line to add to your Packages/manifest.json file in order to pull my release-unitypackage-0.15.1 branch:
-"com.unity.ml-agents": `"https://github.com/andybiar/ml-agents.git#release-unitypackage-0.15.1"`,
+`"com.unity.ml-agents": "https://github.com/andybiar/ml-agents.git#release-unitypackage-0.15.1"`,
 
 
 -----------------------------------------------------------
