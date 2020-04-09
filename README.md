@@ -1,4 +1,4 @@
-This fork exists purely so that I can create Git URL's to the com.unity.ml-agents Unity package, so that the Unity Package manager can automatically pull down the Unity dependencies. 
+This fork exists purely so that I can create Git URL's to the com.unity.ml-agents Unity package, so that the Unity Package manager can automatically pull down the com.unity.ml-agents folder of this repo. 
 
 If you want to use these URL's, go ahead! (Note that you will still need to install the Python dependencies in your environment!)
 
