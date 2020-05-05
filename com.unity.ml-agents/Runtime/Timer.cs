@@ -8,7 +8,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using UnityEngine.SceneManagement;
 
-namespace MLAgents
+namespace Unity.MLAgents
 {
     [DataContract]
     internal class TimerNode
@@ -212,7 +212,7 @@ namespace MLAgents
     internal class RootNode : TimerNode
     {
         // Timer output format version
-        internal const string k_timerFormatVersion = "0.1.0";
+        internal const string k_TimerFormatVersion = "0.1.0";
 
         [DataMember(Name = "metadata", Order = 0)]
         Dictionary<string, string> m_Metadata = new Dictionary<string, string>();
@@ -225,7 +225,7 @@ namespace MLAgents
 
         public RootNode(string name="root") : base(name, true)
         {
-            m_Metadata.Add("timer_format_version", k_timerFormatVersion);
+            m_Metadata.Add("timer_format_version", k_TimerFormatVersion);
             m_Metadata.Add("start_time_seconds", $"{DateTimeOffset.Now.ToUnixTimeSeconds()}");
             m_Metadata.Add("unity_version", Application.unityVersion);
             m_Metadata.Add("command_line_arguments", String.Join(" ", Environment.GetCommandLineArgs()));
@@ -248,27 +248,55 @@ namespace MLAgents
     }
 
     /// <summary>
-    /// Tracks the most recent value of a metric. This is analogous to gauges in statsd.
+    /// Tracks the most recent value of a metric. This is analogous to gauges in statsd and Prometheus.
     /// </summary>
     [DataContract]
     internal class GaugeNode
     {
         const float k_SmoothingFactor = .25f; // weight for exponential moving average.
 
+        /// <summary>
+        /// The most recent value that the gauge was set to.
+        /// </summary>
         [DataMember]
         public float value;
+
+        /// <summary>
+        /// The smallest value that has been seen for the gauge since it was created.
+        /// </summary>
         [DataMember(Name = "min")]
         public float minValue;
+
+        /// <summary>
+        /// The largest value that has been seen for the gauge since it was created.
+        /// </summary>
         [DataMember(Name = "max")]
         public float maxValue;
+
+        /// <summary>
+        /// The exponential moving average of the gauge value. This will take all values into account,
+        /// but weights older values less as more values are added.
+        /// </summary>
         [DataMember(Name = "weightedAverage")]
         public float weightedAverage;
+
+        /// <summary>
+        /// The running average of all gauge values.
+        /// </summary>
+        [DataMember]
+        public float runningAverage;
+
+        /// <summary>
+        /// The number of times the gauge has been updated.
+        /// </summary>
         [DataMember]
         public uint count;
+
         public GaugeNode(float value)
         {
             this.value = value;
             weightedAverage = value;
+            runningAverage = value;
             minValue = value;
             maxValue = value;
             count = 1;
@@ -276,12 +304,15 @@ namespace MLAgents
 
         public void Update(float newValue)
         {
+            ++count;
             minValue = Mathf.Min(minValue, newValue);
             maxValue = Mathf.Max(maxValue, newValue);
             // update exponential moving average
             weightedAverage = (k_SmoothingFactor * newValue) + ((1f - k_SmoothingFactor) * weightedAverage);
             value = newValue;
-            ++count;
+
+            // Update running average - see https://www.johndcook.com/blog/standard_deviation/ for formula.
+            runningAverage = runningAverage + (newValue - runningAverage) / count;
         }
     }
 
